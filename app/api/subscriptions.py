@@ -25,11 +25,17 @@ def get_subscriptions(current_user: str = Depends(get_current_user)):
         return {current_user: sub_doc.to_dict()}
 
 @router.post("/", dependencies=[Depends(get_current_user)])
-async def update_subscriptions(request: Request):
+async def update_subscriptions(request: Request, current_user: str = Depends(get_current_user)):
     db = get_firestore_client()
+    users_ref = db.collection("users")
+    user_doc = users_ref.document(current_user).get()
+    user_data = user_doc.to_dict()
+    is_admin = user_data.get("tier") == "admin"
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can update subscriptions")
+
     subscriptions = await request.json()
     subs_ref = db.collection("subscriptions")
-    users_ref = db.collection("users")
     not_found = []
 
     try:
