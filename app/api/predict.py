@@ -7,7 +7,7 @@ import os
 
 router = APIRouter()
 
-PREDICTION_API_URL = "http://127.0.0.1:8080/predict"
+PREDICTION_API_URL = f'{os.getenv("PREDICTION_API_URL", "http://127.0.0.1:8080")}/predict'
 PREDICTION_API_KEY = os.getenv("PREDICTION_API_KEY")
 
 @router.post("/")
