@@ -3,3 +3,5 @@ uvicorn
 google-cloud-firestore
 python-dotenv
 pydantic
+passlib[bcrypt]
+pyjwt
