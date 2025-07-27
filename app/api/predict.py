@@ -20,10 +20,6 @@ async def predict(request: Request, current_user: str = Depends(get_current_user
     user_doc = users_ref.document(current_user).get()
     if not user_doc.exists:
         raise HTTPException(status_code=404, detail="User not found")
-    user_data = user_doc.to_dict()
-    api_key = user_data.get("api_key")
-    if not api_key:
-        raise HTTPException(status_code=403, detail="API key not found for user")
 
     sub_doc = subs_ref.document(current_user).get()
     if not sub_doc.exists:
@@ -55,4 +51,6 @@ async def predict(request: Request, current_user: str = Depends(get_current_user
     sub_data["apiCallsUsed"] = api_calls_used + 1
     subs_ref.document(current_user).set(sub_data)
 
+    result["apiCallsUsed"] = sub_data["apiCallsUsed"]
+    result["apiCallsLimit"] = api_calls_limit
     return result
