@@ -12,17 +12,22 @@ def get_subscriptions(current_user: str = Depends(get_current_user)):
     user_doc = users_ref.document(current_user).get()
     user_data = user_doc.to_dict()
     is_admin = user_data.get("tier") == "admin"
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can view all subscriptions")
 
     subs_ref = db.collection("subscriptions")
-    if is_admin:
-        docs = subs_ref.stream()
-        subscriptions = {doc.id: doc.to_dict() for doc in docs}
-        return subscriptions
-    else:
-        sub_doc = subs_ref.document(current_user).get()
-        if not sub_doc.exists:
-            return {}
-        return {current_user: sub_doc.to_dict()}
+    docs = subs_ref.stream()
+    subscriptions = {doc.id: doc.to_dict() for doc in docs}
+    return subscriptions
+
+@router.get("/me")
+def get_my_subscription(current_user: str = Depends(get_current_user)):
+    db = get_firestore_client()
+    subs_ref = db.collection("subscriptions")
+    sub_doc = subs_ref.document(current_user).get()
+    if not sub_doc.exists:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    return sub_doc.to_dict()
 
 @router.post("/", dependencies=[Depends(get_current_user)])
 async def update_subscriptions(request: Request, current_user: str = Depends(get_current_user)):
