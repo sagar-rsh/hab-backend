@@ -44,18 +44,19 @@ async def handle_upgrade_request(request: Request, current_user: str = Depends(g
     is_admin = user_data.get("tier") == "admin"
 
     if action == "create":
-        # Check if target user exists
-        target_user_doc = users_ref.document(data["username"]).get()
+        # Always use authenticated user
+        target_user_doc = users_ref.document(current_user).get()
         if not target_user_doc.exists:
             raise HTTPException(status_code=404, detail="Target user does not exist")
         
         # Check for existing pending request
-        existing = requests_ref.where("username", "==", data["username"]).where("status", "==", "pending").stream()
+        existing = requests_ref.where("username", "==", current_user).where("status", "==", "pending").stream()
         if any(existing):
             raise HTTPException(status_code=400, detail="You already have a pending upgrade request")
+        print("Received data for upgrade request:", data)
         new_request = UpgradeRequest(
             id=str(int(__import__("time").time() * 1000)),
-            username=data["username"],
+            username=current_user,
             currentTier=data["currentTier"],
             requestedTier=data["requestedTier"],
             requestDate=__import__("datetime").datetime.utcnow().isoformat(),
