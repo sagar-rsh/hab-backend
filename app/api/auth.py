@@ -29,6 +29,16 @@ def register(req: RegisterRequest):
         tier=req.tier,
     )
     user_ref.set(user.dict())
+
+    # Create subscription entry
+    subs_ref = db.collection("subscriptions")
+    subs_ref.document(req.username).set({
+        "username": req.username,
+        "tier": req.tier,
+        "apiCallsUsed": 0,
+        "lastResetDate": __import__("datetime").datetime.utcnow().isoformat()
+    })
+
     return {"success": True}
 
 @router.post("/login")
