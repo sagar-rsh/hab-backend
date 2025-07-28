@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.auth import router as auth_router
 from app.api.subscriptions import router as subscriptions_router
 from app.api.upgrade_request import router as upgrade_request_router
@@ -9,6 +10,13 @@ from app.api.users import router as users_router
 from app.api.predict import router as predict_router
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(subscriptions_router, prefix="/api/subscriptions")
