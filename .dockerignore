@@ -1,0 +1,26 @@
+# Ignore the virtual environment
+venv/
+*.venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore environment files
+.env
+
+# Ignore GCP credentials file
+*.json
+
+# Ignore Git directory
+.git/
+.gitignore
+
+# Ignore IDE-specific folders
+.vscode/
+.idea/
+
+# Ignore documentation
+README.md
