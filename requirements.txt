@@ -6,3 +6,5 @@ pydantic
 passlib[bcrypt]
 pyjwt
 python-multipart
+pillow
+base64-python
