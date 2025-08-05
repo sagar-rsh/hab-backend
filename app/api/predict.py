@@ -4,6 +4,9 @@ from app.utils.deps import get_current_user
 import requests
 from app.config import TIER_LIMITS
 import os
+import base64
+from PIL import Image
+import io
 
 router = APIRouter()
 
@@ -88,7 +91,7 @@ async def image_upload_predict(
 
     # Forward image and tier to external image prediction API
     try:
-        files = {"image": (image.filename, await image.read(), image.content_type)}
+        files = {"file": (image.filename, await image.read(), image.content_type)}
         data = {"tier": user_tier, "username": current_user}
         response = requests.post(
             IMAGE_API_URL,
@@ -99,11 +102,16 @@ async def image_upload_predict(
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=response.json().get("detail", "Image prediction failed"))
         result = response.json()
+        
+        base64_string = result['output_image_url']
+        
+        result['output_image_url'] = base64_string
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image prediction service error: {str(e)}")
 
     # Increment API usage
     sub_data["apiCallsUsed"] = api_calls_used + 1
     subs_ref.document(current_user).set(sub_data)
-
+    
     return result
