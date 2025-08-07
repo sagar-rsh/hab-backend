@@ -79,9 +79,10 @@ async def image_upload_predict(
     sub_data = sub_doc.to_dict()
     user_tier = sub_data.get("tier", "free")
 
-    # Only allow tier1 and tier2 users
-    if user_tier not in ["tier1", "tier2"]:
-        raise HTTPException(status_code=403, detail="Image upload is only available for tier1 and tier2 users")
+    # Only allow tier1, tier2 and admin users
+    if user_tier not in ["tier1", "tier2", "admin"]:
+        print('User tier:', user_tier)
+        raise HTTPException(status_code=403, detail="Image upload is only available for tier1, tier2 and admin users")
 
     api_calls_used = sub_data.get("apiCallsUsed", 0)
     api_calls_limit = TIER_LIMITS.get(user_tier, 3)
