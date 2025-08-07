@@ -7,6 +7,7 @@ import os
 import base64
 from PIL import Image
 import io
+from time import time
 
 router = APIRouter()
 
@@ -35,7 +36,7 @@ async def predict(request: Request, current_user: str = Depends(get_current_user
 
     if api_calls_used >= api_calls_limit:
         raise HTTPException(status_code=403, detail="API call limit reached for your subscription tier")
-
+    start = time()
     # Get prediction request body
     req_body = await request.json()
     # Forward request to external prediction API
@@ -57,6 +58,7 @@ async def predict(request: Request, current_user: str = Depends(get_current_user
 
     result["apiCallsUsed"] = sub_data["apiCallsUsed"]
     result["apiCallsLimit"] = api_calls_limit
+    result['processing_time'] = f"{int(time() - start)} seconds"
     return result
 
 @router.post("/imageupload")
@@ -64,7 +66,7 @@ async def image_upload_predict(
     current_user: str = Depends(get_current_user),
     image: UploadFile = File(...),
     tier: str = "free"
-):
+    ):
     db = get_firestore_client()
     users_ref = db.collection("users")
     subs_ref = db.collection("subscriptions")
