@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, File, UploadFile
 from app.services.firestore import get_firestore_client
 from app.utils.deps import get_current_user
-import requests
+import httpx
 from app.config import TIER_LIMITS
 import os
 import base64
@@ -41,11 +41,13 @@ async def predict(request: Request, current_user: str = Depends(get_current_user
     req_body = await request.json()
     # Forward request to external prediction API
     try:
-        response = requests.post(
-            PREDICTION_API_URL,
-            json=req_body,
-            headers={"x-api-key": PREDICTION_API_KEY}
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                PREDICTION_API_URL,
+                json=req_body,
+                headers={"x-api-key": PREDICTION_API_KEY},
+                timeout=600.0
+            )
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=response.json().get("detail", "Prediction failed"))
         result = response.json()
@@ -96,12 +98,14 @@ async def image_upload_predict(
     try:
         files = {"file": (image.filename, await image.read(), image.content_type)}
         data = {"tier": user_tier, "username": current_user}
-        response = requests.post(
-            IMAGE_API_URL,
-            files=files,
-            data=data,
-            headers={"x-api-key": PREDICTION_API_KEY}
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                IMAGE_API_URL,
+                files=files,
+                data=data,
+                headers={"x-api-key": PREDICTION_API_KEY},
+                timeout=600.0
+            )
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail=response.json().get("detail", "Image prediction failed"))
         result = response.json()
